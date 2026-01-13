@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Say What? - Party Game</title>
+    <style>
+        :root {
+            --bg: #000000;
+            --card-bg: #111111;
+            --accent: #00f2ff; /* Neon Cyan */
+            --text: #ffffff;
+            --team-a: #ff007b;
+            --team-b: #00ff88;
+        }
+
+        body {
+            font-family: -apple-system, system-ui, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Top Navigation */
+        header {
+            padding: 15px;
+            text-align: center;
+            border-bottom: 1px solid #333;
+        }
+
+        h1 { margin: 0; font-size: 1.2rem; letter-spacing: 3px; color: var(--accent); }
+
+        .category-bar {
+            display: flex;
+            overflow-x: auto;
+            padding: 10px;
+            gap: 10px;
+            background: #0a0a0a;
+        }
+
+        .cat-btn {
+            background: #222;
+            border: 1px solid #444;
+            color: #888;
+            padding: 8px 15px;
+            border-radius: 12px;
+            white-space: nowrap;
+            font-size: 0.9rem;
+        }
+
+        .cat-btn.active {
+            background: var(--accent);
+            color: #000;
+            border-color: var(--accent);
+            font-weight: bold;
+        }
+
+        /* Main Game Area */
+        .game-screen {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            transition: background 0.1s ease;
+        }
+
+        #word-display {
+            font-size: clamp(2.5rem, 12vw, 5.5rem);
+            font-weight: 900;
+            text-align: center;
+            text-transform: uppercase;
+            word-wrap: break-word;
+            max-width: 100%;
+        }
+
+        /* Controls */
+        .main-action {
+            padding: 30px;
+            display: flex;
+            justify-content: center;
+        }
+
+        #next-btn {
+            background: var(--accent);
+            color: black;
+            border: none;
+            width: 80%;
+            max-width: 400px;
+            padding: 20px;
+            font-size: 1.5rem;
+            font-weight: 800;
+            border-radius: 100px;
+            box-shadow: 0 0 20px rgba(0, 242, 255, 0.3);
+        }
+
+        #next-btn:active { transform: scale(0.95); }
+
+        /* Score Tracker */
+        .scoreboard {
+            display: flex;
+            justify-content: space-around;
+            background: var(--card-bg);
+            padding: 15px;
+            border-top: 1px solid #333;
+        }
+
+        .score-box { text-align: center; }
+        .score-box p { margin: 0 0 5px 0; font-size: 0.7rem; opacity: 0.6; }
+        .score-controls { display: flex; align-items: center; gap: 15px; }
+        
+        .score-val { font-size: 1.5rem; font-weight: bold; min-width: 30px; }
+        .plus-btn {
+            background: #333;
+            border: none;
+            color: white;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            font-size: 1.2rem;
+        }
+
+        .flash { background-color: #222 !important; }
+    </style>
+</head>
+<body>
+
+<header><h1>SAY WHAT?</h1></header>
+
+<div class="category-bar" id="cat-bar"></div>
+
+<div class="game-screen" id="screen">
+    <div id="word-display">READY?</div>
+</div>
+
+<div class="main-action">
+    <button id="next-btn" onclick="nextWord()">NEXT WORD</button>
+</div>
+
+<div class="scoreboard">
+    <div class="score-box">
+        <p>TEAM A</p>
+        <div class="score-controls">
+            <div class="score-val" id="scoreA" style="color: var(--team-a)">0</div>
+            <button class="plus-btn" onclick="addPoint('A')">+</button>
+        </div>
+    </div>
+    <div class="score-box">
+        <p>TEAM B</p>
+        <div class="score-controls">
+            <div class="score-val" id="scoreB" style="color: var(--team-b)">0</div>
+            <button class="plus-btn" onclick="addPoint('B')">+</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const gameData = {
+        "🌮 FOOD": ["Chimichanga", "Spaghetti", "Guacamole", "Eggs Benedict", "Marshmallow", "Pineapple Pizza", "Hummus", "Artichoke", "Clam Chowder", "Pumpernickel", "Burrito Bowl", "Mozzarella Sticks"],
+        "🎬 MOVIES": ["Interstellar", "The Lion King", "Jurassic Park", "Harry Potter", "Spider-Man", "Finding Nemo", "The Matrix", "Top Gun", "Shrek", "Titanic", "Toy Story", "Inception"],
+        "💃 ACTIONS": ["Walking the dog", "Eating a lemon", "Driving a car", "Taking a shower", "Brushing teeth", "Doing laundry", "Flying a kite", "Mowing the lawn", "Directing traffic", "Opening a jar"],
+        "🤔 TRICKY": ["Pneumonia", "Rhythm", "Mumble", "Bamboozled", "Bubble Bath", "Aluminum", "Mississippi", "Minimalism", "Ventriloquist", "Xylophone", "Zucchini"],
+        "🤣 FUNNY": ["Wet Whistle", "Rubber Baby Buggy Bumpers", "Fuzzy Wuzzy", "Pickled Peppers", "Scooby Doo", "SpongeBob", "Yabba Dabba Doo", "Hocus Pocus"]
+    };
+
+    let currentCat = "🌮 FOOD";
+    let usedWords = [];
+    let scores = { A: 0, B: 0 };
+
+    // Setup categories
+    const catBar = document.getElementById('cat-bar');
+    Object.keys(gameData).forEach(cat => {
+        const btn = document.createElement('button');
+        btn.innerText = cat;
+        btn.className = 'cat-btn' + (cat === currentCat ? ' active' : '');
+        btn.onclick = () => {
+            currentCat = cat;
+            usedWords = [];
+            document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById('word-display').innerText = "NEW DECK!";
+        };
+        catBar.appendChild(btn);
+    });
+
+    function nextWord() {
+        const words = gameData[currentCat];
+        if (usedWords.length >= words.length) usedWords = [];
+
+        let available = words.filter(w => !usedWords.includes(w));
+        let pick = available[Math.floor(Math.random() * available.length)];
+        
+        usedWords.push(pick);
+        
+        // UI Feedback
+        const screen = document.getElementById('screen');
+        const display = document.getElementById('word-display');
+        
+        display.innerText = pick;
+        screen.classList.add('flash');
+        setTimeout(() => screen.classList.remove('flash'), 100);
+    }
+
+    function addPoint(team) {
+        scores[team]++;
+        document.getElementById(`score${team}`).innerText = scores[team];
+    }
+</script>
+
+</body>
+</html>
