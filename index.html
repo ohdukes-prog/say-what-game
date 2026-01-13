@@ -3,19 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Say What!? - Party Game</title>
+    <title>Say What? - 10+ Edition</title>
     <style>
         :root {
-            --bg: #000000;
-            --card-bg: #111111;
-            --accent: #00f2ff; /* Neon Cyan */
-            --text: #ffffff;
-            --team-a: #ff007b;
-            --team-b: #00ff88;
+            --bg: #0f172a;
+            --card-bg: #1e293b;
+            --accent: #38bdf8;
+            --text: #f8fafc;
+            --team-a: #fb7185;
+            --team-b: #4ade80;
+            --danger: #ef4444;
         }
 
         body {
-            font-family: -apple-system, system-ui, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background-color: var(--bg);
             color: var(--text);
             margin: 0;
@@ -26,41 +27,46 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* Top Navigation */
-        header {
-            padding: 15px;
-            text-align: center;
-            border-bottom: 1px solid #333;
-        }
+        header { padding: 10px; text-align: center; border-bottom: 1px solid #334155; }
+        h1 { margin: 0; font-size: 1.2rem; color: var(--accent); letter-spacing: 2px; }
 
-        h1 { margin: 0; font-size: 1.2rem; letter-spacing: 3px; color: var(--accent); }
+        .timer-container {
+            padding: 10px;
+            font-size: 2.2rem;
+            font-weight: 800;
+            text-align: center;
+            background: #020617;
+            color: var(--accent);
+        }
+        .timer-low { color: var(--danger); animation: pulse 0.5s infinite; }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
 
         .category-bar {
             display: flex;
             overflow-x: auto;
-            padding: 10px;
+            padding: 12px;
             gap: 10px;
-            background: #0a0a0a;
+            background: #020617;
         }
 
         .cat-btn {
-            background: #222;
-            border: 1px solid #444;
-            color: #888;
-            padding: 8px 15px;
-            border-radius: 12px;
+            background: #334155;
+            border: none;
+            color: #94a3b8;
+            padding: 10px 18px;
+            border-radius: 20px;
             white-space: nowrap;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
+            font-weight: 600;
         }
 
-        .cat-btn.active {
-            background: var(--accent);
-            color: #000;
-            border-color: var(--accent);
-            font-weight: bold;
-        }
+        .cat-btn.active { background: var(--accent); color: #020617; }
 
-        /* Main Game Area */
         .game-screen {
             flex: 1;
             display: flex;
@@ -68,143 +74,177 @@
             justify-content: center;
             align-items: center;
             padding: 20px;
-            transition: background 0.1s ease;
+            position: relative;
         }
 
         #word-display {
-            font-size: clamp(2.5rem, 12vw, 5.5rem);
+            font-size: clamp(2rem, 10vw, 4.5rem);
             font-weight: 900;
             text-align: center;
             text-transform: uppercase;
-            word-wrap: break-word;
-            max-width: 100%;
+            line-height: 1.2;
         }
 
-        /* Controls */
-        .main-action {
-            padding: 30px;
-            display: flex;
-            justify-content: center;
+        #times-up {
+            position: absolute;
+            background: var(--danger);
+            color: white;
+            padding: 20px 40px;
+            font-size: 3rem;
+            font-weight: 900;
+            border-radius: 20px;
+            display: none;
+            z-index: 10;
+            box-shadow: 0 0 40px rgba(239, 68, 68, 0.5);
         }
 
-        #next-btn {
-            background: var(--accent);
-            color: black;
-            border: none;
-            width: 80%;
+        .main-action { padding: 30px; display: flex; flex-direction: column; align-items: center; width: 100%; }
+        #next-btn, #start-btn {
+            width: 85%;
             max-width: 400px;
             padding: 20px;
-            font-size: 1.5rem;
+            font-size: 1.6rem;
             font-weight: 800;
-            border-radius: 100px;
-            box-shadow: 0 0 20px rgba(0, 242, 255, 0.3);
+            border-radius: 50px;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 4px 14px 0 rgba(0,0,0,0.3);
         }
+        #next-btn { background: var(--accent); color: #020617; display: none; }
+        #start-btn { background: #f8fafc; color: #0f172a; }
 
-        #next-btn:active { transform: scale(0.95); }
-
-        /* Score Tracker */
         .scoreboard {
             display: flex;
             justify-content: space-around;
-            background: var(--card-bg);
+            background: #1e293b;
             padding: 15px;
-            border-top: 1px solid #333;
+            border-top: 2px solid #334155;
         }
 
         .score-box { text-align: center; }
-        .score-box p { margin: 0 0 5px 0; font-size: 0.7rem; opacity: 0.6; }
-        .score-controls { display: flex; align-items: center; gap: 15px; }
-        
-        .score-val { font-size: 1.5rem; font-weight: bold; min-width: 30px; }
-        .plus-btn {
-            background: #333;
-            border: none;
-            color: white;
-            width: 35px;
-            height: 35px;
-            border-radius: 50%;
-            font-size: 1.2rem;
-        }
+        .score-val { font-size: 1.8rem; font-weight: 800; margin-bottom: 5px; }
+        .plus-btn { background: #334155; color: white; border: none; width: 45px; height: 45px; border-radius: 50%; font-size: 1.4rem; font-weight: bold; }
 
-        .flash { background-color: #222 !important; }
+        .flash { animation: flash-bg 0.15s; }
+        @keyframes flash-bg { 0% { background: #334155; } 100% { background: var(--bg); } }
     </style>
 </head>
 <body>
 
-<header><h1>SAY WHAT!?</h1></header>
+<header><h1>SAY WHAT? 10+ EDITION</h1></header>
+
+<div class="timer-container" id="timer">60s</div>
 
 <div class="category-bar" id="cat-bar"></div>
 
 <div class="game-screen" id="screen">
-    <div id="word-display">READY?</div>
+    <div id="times-up">TIME'S UP!</div>
+    <div id="word-display">READY TO PLAY?</div>
 </div>
 
 <div class="main-action">
+    <button id="start-btn" onclick="startRound()">START ROUND</button>
     <button id="next-btn" onclick="nextWord()">NEXT WORD</button>
 </div>
 
 <div class="scoreboard">
     <div class="score-box">
-        <p>TEAM A</p>
-        <div class="score-controls">
-            <div class="score-val" id="scoreA" style="color: var(--team-a)">0</div>
-            <button class="plus-btn" onclick="addPoint('A')">+</button>
-        </div>
+        <div class="score-val" id="scoreA" style="color: var(--team-a)">0</div>
+        <button class="plus-btn" onclick="addPoint('A')">+</button>
     </div>
     <div class="score-box">
-        <p>TEAM B</p>
-        <div class="score-controls">
-            <div class="score-val" id="scoreB" style="color: var(--team-b)">0</div>
-            <button class="plus-btn" onclick="addPoint('B')">+</button>
-        </div>
+        <div class="score-val" id="scoreB" style="color: var(--team-b)">0</div>
+        <button class="plus-btn" onclick="addPoint('B')">+</button>
     </div>
 </div>
 
 <script>
     const gameData = {
-        "🌮 FOOD": ["Chimichanga", "Spaghetti", "Guacamole", "Eggs Benedict", "Marshmallow", "Pineapple Pizza", "Hummus", "Artichoke", "Clam Chowder", "Pumpernickel", "Burrito Bowl", "Mozzarella Sticks"],
-        "🎬 MOVIES": ["Interstellar", "The Lion King", "Jurassic Park", "Harry Potter", "Spider-Man", "Finding Nemo", "The Matrix", "Top Gun", "Shrek", "Titanic", "Toy Story", "Inception"],
-        "💃 ACTIONS": ["Walking the dog", "Eating a lemon", "Driving a car", "Taking a shower", "Brushing teeth", "Doing laundry", "Flying a kite", "Mowing the lawn", "Directing traffic", "Opening a jar"],
-        "🤔 TRICKY": ["Pneumonia", "Rhythm", "Mumble", "Bamboozled", "Bubble Bath", "Aluminum", "Mississippi", "Minimalism", "Ventriloquist", "Xylophone", "Zucchini"],
-        "🤣 FUNNY": ["Wet Whistle", "Rubber Baby Buggy Bumpers", "Fuzzy Wuzzy", "Pickled Peppers", "Scooby Doo", "SpongeBob", "Yabba Dabba Doo", "Hocus Pocus"]
+        "🎮 GAMING": [
+            "Minecraft", "Roblox", "Fortnite", "Super Mario", "Pikachu", "Among Us", "Zelda", "Master Chief", "Sonic the Hedgehog", "Pac Man", "Tetris", "Donkey Kong", "Link", "Bowser", "Kirby", "Battle Royale", "Creepers", "V-Bucks", "Enderman", "Call of Duty", "Animal Crossing", "Tom Nook", "Isabelle", "Ender Dragon", "Diamond Pickaxe", "Nintendo Switch", "PlayStation", "Xbox One", "Game Over", "Level Up", "Victory Royale", "Lagging", "Gamer Tag", "Respawn", "Noob", "Pro Gamer", "Mortal Kombat", "Street Fighter", "Mega Man", "Splatoon", "Final Fantasy", "Kingdom Hearts", "Spyro", "Crash Bandicoot", "Luigi", "Princess Peach", "Wario", "Yoshi", "Toad", "Star Fox"
+        ],
+        "🍔 FOOD": [
+            "Cheeseburger", "Pepperoni Pizza", "French Fries", "Chicken Nuggets", "Ice Cream Cone", "Tacos", "Spaghetti", "Hot Dog", "Donuts", "Pancakes", "Waffles", "Chocolate Chip Cookies", "Sushi", "Burrito", "Nachos", "Popcorn", "Cotton Candy", "Milkshake", "Apple Pie", "Grilled Cheese", "Peanut Butter", "Jelly Sandwich", "Macaroni and Cheese", "Lasagna", "Steak", "Bacon", "Fried Chicken", "Watermelon", "Pineapple", "Strawberry", "Blueberry", "Smoothie", "Lemonade", "Cupcake", "Brownies", "Potato Chips", "Pretzels", "Hot Wings", "Corn on the Cob", "Mashed Potatoes", "Broccoli", "Carrots", "Cucumber", "Guacamole", "Quesadilla", "Fish and Chips", "Bagel", "Cereal", "Oatmeal", "Yogurt"
+        ],
+        "🎬 MOVIES & TV": [
+            "Stranger Things", "Harry Potter", "Star Wars", "The Avengers", "Spider-Man", "Batman", "Frozen", "The Lion King", "SpongeBob SquarePants", "The Simpsons", "Toy Story", "Finding Nemo", "Minions", "Jurassic Park", "Shrek", "Avatar", "High School Musical", "Wednesday", "Cobra Kai", "The Mandalorian", "Baby Yoda", "Iron Man", "Black Panther", "Wonder Woman", "Superman", "Captain America", "Thor", "Hulk", "Groot", "Thanos", "Darth Vader", "Luke Skywalker", "Hermione Granger", "Ron Weasley", "Dumbledore", "Lord of the Rings", "The Hobbit", "Inside Out", "Moana", "Encanto", "Coco", "Cars", "The Incredibles", "Ratatouille", "Monster's Inc", "Despicable Me", "The Grinch", "Home Alone", "Jumanji", "Willy Wonka"
+        ],
+        "🦁 ANIMALS": [
+            "African Elephant", "Golden Retriever", "Great White Shark", "Bald Eagle", "Giant Panda", "Bengal Tiger", "King Cobra", "Kangaroo", "Platypus", "Polar Bear", "Grizzly Bear", "Hippopotamus", "Rhinoceros", "Giraffe", "Zebra", "Lioness", "Cheetah", "Chimpanzee", "Gorilla", "Orangutan", "Bottlenose Dolphin", "Blue Whale", "Humpback Whale", "Octopus", "Seahorse", "Sea Turtle", "Penguin", "Flamingo", "Peacock", "Ostrich", "Hummingbird", "Chameleon", "Iguana", "Komodo Dragon", "Honey Bee", "Butterfly", "Spider Monkey", "Sloth", "Armadillo", "Anteater", "Wombat", "Koala", "Lemur", "Meerkat", "Hyena", "Wolf", "Red Fox", "Raccoon", "Squirrel", "Hamster"
+        ],
+        "🦸 HEROES & VILLAINS": [
+            "Iron Man", "Captain America", "Thor", "Hulk", "Black Widow", "Spider-Man", "Doctor Strange", "Black Panther", "Captain Marvel", "Ant-Man", "Wasp", "Star-Lord", "Gamora", "Drax", "Rocket Raccoon", "Groot", "Thanos", "Loki", "Venom", "Green Goblin", "Doctor Octopus", "Batman", "Superman", "Wonder Woman", "The Flash", "Aquaman", "Cyborg", "Shazam", "Joker", "Harley Quinn", "Catwoman", "Lex Luthor", "Penguin", "Riddler", "Bane", "Deadpool", "Wolverine", "Professor X", "Magneto", "Storm", "Cyclops", "Jean Grey", "Beast", "Nightcrawler", "Gambit", "Rogue", "Mystique", "Daredevil", "Punisher", "Ghost Rider"
+        ],
+        "🌎 PLACES & THINGS": [
+            "Eiffel Tower", "Statue of Liberty", "Great Wall of China", "Pyramids of Giza", "Grand Canyon", "Mount Everest", "Amazon Rainforest", "Hollywood Sign", "Disney World", "Golden Gate Bridge", "Big Ben", "Colosseum", "Taj Mahal", "Sydney Opera House", "Empire State Building", "White House", "Times Square", "Central Park", "The Moon", "Mars", "Jupiter", "Saturn", "Sun", "Ocean", "Desert", "Jungle", "Volcano", "Waterfall", "Island", "Continent", "Country", "City", "Village", "Skyscraper", "Castle", "Pyramid", "Temple", "Museum", "Library", "School", "Hospital", "Airport", "Train Station", "Space Station", "Telescope", "Microscope", "Computer", "Smartphone", "Television", "Internet"
+        ]
     };
 
-    let currentCat = "🌮 FOOD";
+    let currentCat = "🎮 GAMING";
     let usedWords = [];
     let scores = { A: 0, B: 0 };
+    let timer;
+    let timeLeft = 60;
 
-    // Setup categories
     const catBar = document.getElementById('cat-bar');
     Object.keys(gameData).forEach(cat => {
         const btn = document.createElement('button');
         btn.innerText = cat;
         btn.className = 'cat-btn' + (cat === currentCat ? ' active' : '');
         btn.onclick = () => {
+            resetRound();
             currentCat = cat;
             usedWords = [];
             document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            document.getElementById('word-display').innerText = "NEW DECK!";
+            document.getElementById('word-display').innerText = "NEW DECK LOADED";
         };
         catBar.appendChild(btn);
     });
 
+    function startRound() {
+        resetRound();
+        document.getElementById('start-btn').style.display = 'none';
+        document.getElementById('next-btn').style.display = 'block';
+        nextWord();
+        
+        timer = setInterval(() => {
+            timeLeft--;
+            const timerDiv = document.getElementById('timer');
+            timerDiv.innerText = timeLeft + 's';
+            
+            if (timeLeft <= 10) timerDiv.classList.add('timer-low');
+            
+            if (timeLeft <= 0) {
+                clearInterval(timer);
+                document.getElementById('times-up').style.display = 'block';
+                document.getElementById('next-btn').style.display = 'none';
+                document.getElementById('start-btn').style.display = 'block';
+                document.getElementById('start-btn').innerText = 'RESET TIMER';
+            }
+        }, 1000);
+    }
+
+    function resetRound() {
+        clearInterval(timer);
+        timeLeft = 60;
+        const timerDiv = document.getElementById('timer');
+        timerDiv.innerText = '60s';
+        timerDiv.classList.remove('timer-low');
+        document.getElementById('times-up').style.display = 'none';
+        document.getElementById('start-btn').innerText = 'START ROUND';
+    }
+
     function nextWord() {
         const words = gameData[currentCat];
         if (usedWords.length >= words.length) usedWords = [];
-
         let available = words.filter(w => !usedWords.includes(w));
         let pick = available[Math.floor(Math.random() * available.length)];
-        
         usedWords.push(pick);
-        
-        // UI Feedback
-        const screen = document.getElementById('screen');
-        const display = document.getElementById('word-display');
-        
-        display.innerText = pick;
-        screen.classList.add('flash');
-        setTimeout(() => screen.classList.remove('flash'), 100);
+
+        document.getElementById('word-display').innerText = pick;
+        document.getElementById('screen').classList.add('flash');
+        setTimeout(() => document.getElementById('screen').classList.remove('flash'), 150);
     }
 
     function addPoint(team) {
@@ -212,6 +252,5 @@
         document.getElementById(`score${team}`).innerText = scores[team];
     }
 </script>
-
 </body>
 </html>
